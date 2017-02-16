@@ -5,7 +5,7 @@ fn main() {
 }
 
 fn io_loop() {
-    let empty_game = GameState { board: [['.'; WIDTH]; HEIGHT],
+    let empty_game = GameState { board: [[EMPTY; WIDTH]; HEIGHT],
                                  score: 0,
                                  lines_cleared: 0};
     let mut game = empty_game;
@@ -20,9 +20,11 @@ fn io_loop() {
         if command == "c" { game = empty_game; }
         if command == "?s" { println!("{}", game.score); }
         if command == "?n" { println!("{}", game.lines_cleared); }
+        if command == "s" { game.step(); }
     }
 }
 
+const EMPTY: char = '.';
 const WIDTH: usize = 10;
 const HEIGHT: usize = 22;
 type CellData = char;
@@ -54,7 +56,7 @@ impl GameState {
 
     /// Read in a game board state from stdin.
     fn read_board(&mut self) {
-        let mut new_board = [['.'; WIDTH]; HEIGHT];
+        let mut new_board = [[EMPTY; WIDTH]; HEIGHT];
         for rownum in 0..HEIGHT {
             let mut line_str = String::new();
             io::stdin().read_line(&mut line_str)
@@ -65,6 +67,19 @@ impl GameState {
                 row[i] = item.chars().nth(0).unwrap();
             }
             new_board[rownum] = row;
+        }
+        self.board = new_board;
+    }
+
+    /// Advance the game by one "tick".
+    fn step(&mut self) {
+        let mut new_board = self.board;
+        for rownum in 0..HEIGHT {
+            if new_board[rownum].into_iter().all(|x| *x != EMPTY) {
+                new_board[rownum] = ['.'; WIDTH];
+                self.score += 100;
+                self.lines_cleared += 1;
+            }
         }
         self.board = new_board;
     }

@@ -42,9 +42,9 @@ struct GameState {
 impl GameState {
     /// Print the state of the game to stdout.
     fn print(&self) {
-        for row in self.board.into_iter() {
+        for row in self.board.iter() {
             let mut row_string = "".to_string();
-            for cell in row.into_iter() {
+            for cell in row.iter() {
                 if !row_string.is_empty() {
                     row_string.push(' ');
                 }
@@ -75,7 +75,7 @@ impl GameState {
     fn step(&mut self) {
         let mut new_board = self.board;
         for rownum in 0..HEIGHT {
-            if new_board[rownum].into_iter().all(|x| *x != EMPTY) {
+            if new_board[rownum].iter().all(|&x| x != EMPTY) {
                 new_board[rownum] = ['.'; WIDTH];
                 self.score += 100;
                 self.lines_cleared += 1;

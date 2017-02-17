@@ -7,20 +7,27 @@ fn main() {
 fn io_loop() {
     let empty_game = GameState { board: [[EMPTY; WIDTH]; HEIGHT],
                                  score: 0,
-                                 lines_cleared: 0};
+                                 lines_cleared: 0,
+                                 current_tmino: None};
     let mut game = empty_game;
     loop {
         let mut command = String::new();
         io::stdin().read_line(&mut command)
             .expect("Failed to read line");
         let command = command.trim();
-        if command == "q" { break; }
-        if command == "p" { game.print(); }
-        if command == "g" { game.read_board(); }
-        if command == "c" { game = empty_game; }
-        if command == "?s" { println!("{}", game.score); }
-        if command == "?n" { println!("{}", game.lines_cleared); }
-        if command == "s" { game.step(); }
+        match command {
+            "q" => break,
+            "p" => game.print(),
+            "g" => game.read_board(),
+            "c" => game = empty_game,
+            "?s" => println!("{}", game.score),
+            "?n" => println!("{}", game.lines_cleared),
+            "s" => game.step(),
+            "t" => match game.current_tmino {
+                None => println!("No current tmino"),
+                Some(x) => game.print_current_tmino(),},
+            _ => println!("Bad Command!"),
+        }
     }
 }
 
@@ -31,28 +38,33 @@ type CellData = char;
 type BoardRow = [CellData; WIDTH];
 type Board = [BoardRow; HEIGHT];
 
+fn print_grid(grid: &[[CellData]]) {
+    for row in grid.iter() {
+        let mut row_string = "".to_string();
+        for cell in row.iter() {
+            if !row_string.is_empty() {
+                row_string.push(' ');
+            }
+            row_string.push(*cell);
+        }
+        println!("{}", row_string);
+    }
+}
+
 /// The current state of the Tetris game.
 #[derive(Debug, Copy, Clone)]
 struct GameState {
     board: Board,
     score: i32,
     lines_cleared: i32,
+    current_tmino: Option<Tmino>,
 }
 
 impl GameState {
     /// Print the state of the game to stdout.
-    fn print(&self) {
-        for row in self.board.iter() {
-            let mut row_string = "".to_string();
-            for cell in row.iter() {
-                if !row_string.is_empty() {
-                    row_string.push(' ');
-                }
-                row_string.push(*cell);
-            }
-            println!("{}", row_string);
-        }
-    }
+    fn print(&self) { print_grid(self.board); }
+
+    fn print_current_tmino(&self) { print_grid(self.current_tmino.grid); }
 
     /// Read in a game board state from stdin.
     fn read_board(&mut self) {
@@ -84,3 +96,21 @@ impl GameState {
         self.board = new_board;
     }
 }
+
+const TMINO_HEIGHT: usize = 4;
+const TMINO_WIDTH: usize = 4;
+type TminoRow = [CellData; TMINO_WIDTH];
+type TminoGrid = [TminoRow; TMINO_HEIGHT];
+
+#[derive(Debug, Copy, Clone)]
+struct Tmino {
+    name: char,
+    grid: TminoGrid,
+}
+
+const I_TMINO: Tmino = Tmino {name: 'I',
+                              grid: [[EMPTY, EMPTY, EMPTY, EMPTY],
+                                     ['c', 'c', 'c', 'c'],
+                                     [EMPTY, EMPTY, EMPTY, EMPTY],
+                                     [EMPTY, EMPTY, EMPTY, EMPTY]]};
+

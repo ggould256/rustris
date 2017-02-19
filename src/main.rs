@@ -25,7 +25,8 @@ fn io_loop() {
             "s" => game.step(),
             "t" => match game.current_tmino {
                 None => println!("No current tmino"),
-                Some(x) => game.print_current_tmino(),},
+                Some(tmino) => print_grid(tmino.grid),},
+            "I" => game.current_tmino = Some(I_TMINO),
             _ => println!("Bad Command!"),
         }
     }
@@ -38,10 +39,10 @@ type CellData = char;
 type BoardRow = [CellData; WIDTH];
 type Board = [BoardRow; HEIGHT];
 
-fn print_grid(grid: &[[CellData]]) {
-    for row in grid.iter() {
+fn print_grid<Matrix: AsRef<[Row]>, Row: AsRef<[CellData]>>(grid: Matrix) {
+    for row in grid.as_ref() {
         let mut row_string = "".to_string();
-        for cell in row.iter() {
+        for cell in row.as_ref() {
             if !row_string.is_empty() {
                 row_string.push(' ');
             }
@@ -62,9 +63,7 @@ struct GameState {
 
 impl GameState {
     /// Print the state of the game to stdout.
-    fn print(&self) { print_grid(self.board); }
-
-    fn print_current_tmino(&self) { print_grid(self.current_tmino.grid); }
+    fn print(&self) { print_grid(&self.board); }
 
     /// Read in a game board state from stdin.
     fn read_board(&mut self) {

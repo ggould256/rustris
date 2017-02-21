@@ -16,6 +16,48 @@ pub struct Tmino {
     pub start_loc: (usize, usize),
 }
 
+impl Tmino {
+    fn size(&self) -> usize { self.grid.len() }
+
+    fn topmargin(&self) -> usize {
+        let mut margin = 0;
+        for y in 0..self.size() {
+            if self.grid[y].iter().any(|&c| c != EMPTY) { break; }
+            margin += 1;
+        }
+        margin
+    }
+
+    fn leftmargin(&self) -> usize {
+        let mut margin = 0;
+        for x in 0..self.size() {
+            if (0..self.size()).any(|y| self.grid[y][x] != EMPTY) { break; }
+            margin += 1;
+        }
+        margin
+    }
+
+    fn rightmargin(&self) -> usize {
+        let mut margin = 0;
+        for x in 0..self.size() {
+            let x = self.size() - x - 1;
+            if (0..self.size()).any(|y| self.grid[y][x] != EMPTY) { break; }
+            margin += 1;
+        }
+        margin
+    }
+
+    fn botmargin(&self) -> usize {
+        let mut margin = 0;
+        for y in 0..self.size() {
+            let y = self.size() - y - 1;
+            if (0..self.size()).any(|x| self.grid[y][x] != EMPTY) { break; }
+            margin += 1;
+        }
+        margin
+    }
+}
+
 pub fn make_i_tmino() -> Tmino {
     let grid = vec!(vec!(EMPTY, EMPTY, EMPTY, EMPTY),
                     vec!('c', 'c', 'c', 'c'),
@@ -71,6 +113,17 @@ pub fn rotate_clockwise(t: &Tmino) -> Tmino {
     for y in 0..size {
         for x in 0..size {
             ret.grid[y][x] = t.grid[size - x - 1][y];
+        }
+    }
+    return ret;
+}
+
+pub fn rotate_counterclockwise(t: &Tmino) -> Tmino {
+    let size = t.grid.len();
+    let mut ret = t.clone();
+    for y in 0..size {
+        for x in 0..size {
+            ret.grid[y][x] = t.grid[x][size - y - 1];
         }
     }
     return ret;
@@ -164,8 +217,44 @@ impl GameState {
         self.board = new_board;
     }
 
+    fn valid_location(&self, y: i32, x: i32) -> bool {
+        if x < 0 || y < 0 { return false; }
+        let x: usize = x as usize;
+        let y: usize = y as usize;
+        let tmino = match self.current_tmino {
+            None => return true,
+            Some(ref t) => t,
+        };
+        if y < tmino.topmargin() ||
+            y + tmino.size() > HEIGHT + tmino.botmargin() {
+            return false; };
+        if x < tmino.leftmargin() ||
+            x + tmino.size() > WIDTH + tmino.rightmargin() {
+            return false; };
+        // More conditions to come later
+        true
+    }
+
     pub fn start_new_tmino(&mut self, tmino: Tmino) {
         self.current_tmino_topleft = tmino.start_loc;
         self.current_tmino = Some(tmino);
+    }
+
+    pub fn shift_left(&mut self) {
+        let (y, x) = self.current_tmino_topleft;
+        if !self.valid_location(y as i32, x as i32 - 1) { return; }
+        self.current_tmino_topleft = (y, x - 1)
+    }
+
+    pub fn shift_right(&mut self) {
+        let (y, x) = self.current_tmino_topleft;
+        if !self.valid_location(y as i32, x as i32 + 1) { return; }
+        self.current_tmino_topleft = (y, x + 1)
+    }
+
+    pub fn shift_down(&mut self) {
+        let (y, x) = self.current_tmino_topleft;
+        if !self.valid_location(y as i32 + 1, x as i32) { return; }
+        self.current_tmino_topleft = (y + 1, x)
     }
 }

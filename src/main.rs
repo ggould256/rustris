@@ -51,8 +51,14 @@ fn io_loop() {
                 ')' => match game.current_tmino.clone() {
                     None => println!("No current tmino"),
                     Some(ref tmino) => {
-                        game.current_tmino = Some(rotate_clockwise(tmino))},
-                },
+                        game.current_tmino = Some(rotate_clockwise(tmino))}},
+                '(' => match game.current_tmino.clone() {
+                    None => println!("No current tmino"),
+                    Some(ref tmino) => {
+                        game.current_tmino = Some(rotate_counterclockwise(tmino))}},
+                '<' => game.shift_left(),
+                '>' => game.shift_right(),
+                'v' => game.shift_down(),
                 _ => { println!("Bad Command \'{}\'!", command); return; },
             }
             if command != '?' { query_mode = false; }
